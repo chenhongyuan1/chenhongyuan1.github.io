@@ -1,5 +1,5 @@
 {
-  "syncedAt": "2026-09-27T08:07:38.475Z",
+  "syncedAt": "2026-09-27T09:06:13.764Z",
   "config": {
     "repo": "chenhongyuan1/chenhongyuan1.github.io",
     "discussionNumber": 1,
@@ -7,5 +7,13 @@
     "category": "Announcements",
     "categoryId": "DIC_kwDOUTR0ks4DGfO_"
   },
-  "comments": []
+  "comments": [
+    {
+      "id": "DC_kwDOUTR0ks4BHCgU",
+      "author": "chenhongyuan1",
+      "avatar": "https://avatars.githubusercontent.com/u/184721124?u=8b5f2d1d37141636a821e1d3093967004cc3a69c&v=4",
+      "text": "本人来了:D",
+      "url": "https://github.com/chenhongyuan1/chenhongyuan1.github.io/discussions/1#discussioncomment-18622484"
+    }
+  ]
 }
