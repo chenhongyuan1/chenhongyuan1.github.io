@@ -1,4 +1,4 @@
-import{r as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,r as n,t as r}from"./index-BVAEVRmB.js";import{$ as i,Bt as a,D as o,Dt as s,E as c,Ft as l,Ht as u,It as d,Lt as f,Nt as p,O as m,Ot as h,Tt as g,W as _,Wt as v,bt as y,dt as b,ft as ee,g as x,h as S,it as C,l as w,m as T,nt as E,pt as D,s as O,t as te,tt as k,w as A,xt as j,zt as M}from"./three.module-BcSExYyK.js";/* empty css                      */var N=e(t(),1),P=n(),F={name:`CopyShader`,uniforms:{tDiffuse:{value:null},opacity:{value:1}},vertexShader:`
+import{r as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,r as n,t as r}from"./index-C1qkzM7A.js";import{$ as i,Bt as a,D as o,Dt as s,E as c,Ft as l,Ht as u,It as d,Lt as f,Nt as p,O as m,Ot as h,Tt as g,W as _,Wt as v,bt as y,dt as b,ft as ee,g as x,h as S,it as C,l as w,m as T,nt as E,pt as D,s as O,t as te,tt as k,w as A,xt as j,zt as M}from"./three.module-BcSExYyK.js";/* empty css                      */var N=e(t(),1),P=n(),F={name:`CopyShader`,uniforms:{tDiffuse:{value:null},opacity:{value:1}},vertexShader:`
 
 		varying vec2 vUv;
 
