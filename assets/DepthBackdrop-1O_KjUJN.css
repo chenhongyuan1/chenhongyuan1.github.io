@@ -1,0 +1,1 @@
+.depth-backdrop{background-color:var(--bg);background-position:50%;background-size:cover;width:100%;height:100%}.depth-backdrop canvas{width:100%;height:100%;display:block}body:has(.depth-backdrop) .backdrop-switcher__btn{opacity:.85;background:#ffffffe6}
