@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<!-- Adapted from Nayla Escalona Pinar; see LICENSE.txt in this folder. -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关于 · 玻璃桌面</title>
+    <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    
+    <style>
+        /* --- RESET Y VARIABLES --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            background: url('https://u.cubeupload.com/zmonochrome/1405375.png') no-repeat center center/cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(5px);
+            z-index: 0;
+        }
+
+        /* --- PANTALLA DE BLOQUEO (LOCKSCREEN) --- */
+        .lockscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: url('https://u.cubeupload.com/zmonochrome/1405375.png') no-repeat center center/cover;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 999;
+            cursor: pointer;
+            transition: transform 0.6s cubic-bezier(0.85, 0, 0.15, 1);
+        }
+
+        .lockscreen::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(8px);
+            z-index: -1;
+        }
+
+        .lockscreen.unlocked {
+            transform: translateY(-100%);
+        }
+
+        .lock-clock {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 6.5rem;
+            font-weight: bold;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            line-height: 1;
+        }
+
+        .lock-date {
+            font-size: 1.5rem;
+            font-weight: 300;
+            margin-top: 10px;
+            opacity: 0.9;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            text-transform: capitalize;
+        }
+
+        .lock-hint {
+            position: absolute;
+            bottom: 60px;
+            font-size: 0.95rem;
+            letter-spacing: 2px;
+            opacity: 0.7;
+            animation: pulse 2s infinite;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; transform: scale(0.98); }
+            50% { opacity: 0.9; transform: scale(1); }
+        }
+
+        /* --- CONTENEDOR PRINCIPAL DEL UI --- */
+        .desktop-container {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            border-radius: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        /* --- BARRA LATERAL IZQUIERDA --- */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 15px;
+            gap: 20px;
+            height: 500px;
+            width: 70px;
+            border-radius: 40px;
+        }
+
+        .sidebar-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            text-decoration: none;
+            font-size: 1.1rem;
+        }
+
+        .sidebar-btn:hover {
+            transform: scale(1.1);
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        .sidebar-btn.search {
+            background: rgba(255, 255, 255, 0.8);
+            color: #333;
+        }
+
+        /* --- PANELES DEL TABLERO PRINCIPAL --- */
+        .main-board {
+            width: 900px;
+            height: 530px;
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            position: relative;
+        }
+
+        /* --- Render de Miyu Centrado --- */
+        .character-bg-inside {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            height: 110%;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.95;
+            filter: drop-shadow(0 10px 25px rgba(0,0,0,0.5));
+        }
+
+        /* --- COLUMNA IZQUIERDA (Reloj, Calendario y Música abajo) --- */
+        .left-col {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 3;
+            grid-column: 1;
+        }
+
+        .clock-widget {
+            color: #fff;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+        }
+
+        .time {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 3.5rem;
+            font-weight: bold;
+            line-height: 1;
+            letter-spacing: -2px;
+        }
+
+        .date {
+            font-size: 0.9rem;
+            font-weight: 600;
+            opacity: 0.9;
+            margin-left: 5px;
+            text-transform: capitalize;
+        }
+
+        .calendar-widget {
+            background: rgba(15, 15, 18, 0.85);
+            color: #fff;
+            border-radius: 20px;
+            padding: 12px;
+            width: 215px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .calendar-header {
+            text-align: center;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 4px;
+            margin-bottom: 6px;
+            text-transform: capitalize;
+            font-size: 0.8rem;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            text-align: center;
+            font-size: 0.7rem;
+        }
+
+        .day-name { opacity: 0.5; font-weight: bold; }
+        .calendar-grid span:not(.day-name) { cursor: pointer; padding: 2px 0; display: inline-block; width: 100%; }
+        .calendar-grid .active {
+            background: #fff;
+            color: #000;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        /* --- REPRODUCTOR INTERACTIVO (Alineado a la Izquierda) --- */
+        .music-player {
+            background: rgba(20, 22, 26, 0.85);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 18px;
+            padding: 10px 12px;
+            width: 215px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        }
+
+        .album-art {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background-size: cover;
+            background-position: center;
+            flex-shrink: 0;
+            transition: background-image 0.3s ease;
+        }
+
+        .track-info {
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        .track-title { 
+            font-size: 0.72rem; 
+            font-weight: 600; 
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .player-controls {
+            display: flex;
+            gap: 10px;
+            font-size: 0.8rem;
+            opacity: 0.9;
+            margin-top: 4px;
+            align-items: center;
+        }
+
+        .player-controls i { cursor: pointer; transition: transform 0.1s; }
+        .player-controls i:hover { transform: scale(1.15); }
+        .player-controls i.active-btn { color: #29b6f6; }
+        .player-controls i.liked { color: #ff3b30; }
+
+        /* --- COLUMNA DERECHA (User, Galería y Muro abajo) --- */
+        .right-col {
+            grid-column: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 15px;
+            z-index: 3;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+            justify-content: flex-end;
+        }
+
+        .mini-icon-btn {
+            background: rgba(0,0,0,0.8);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        .user-tag {
+            background: rgba(255, 255, 255, 0.85);
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .user-avatar {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #b19ffb;
+        }
+
+        .greeting {
+            color: #fff;
+            font-weight: bold;
+            font-size: 1.2rem;
+            width: 100%;
+            text-align: right;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .gallery-item {
+            border-radius: 15px;
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.15);
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .gallery-item:hover {
+            transform: scale(1.04) rotate(1deg);
+        }
+
+        .item-large {
+            height: 140px;
+            grid-row: span 2;
+            background-image: url('https://u.cubeupload.com/zmonochrome/miyus.jpg');
+        }
+        .item-top {
+            height: 65px;
+            background-image: url('https://u.cubeupload.com/zmonochrome/miyus2.jpg');
+        }
+        .item-bottom {
+            height: 65px;
+            background-image: url('https://u.cubeupload.com/zmonochrome/miyus1.jpg');
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.3rem;
+        }
+
+        /* --- MURO DE NOTAS EN LA COLUMNA DERECHA --- */
+        .board-widget {
+            background: rgba(20, 22, 26, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 12px;
+            width: 100%;
+            height: 195px; /* Proporción limpia para rellenar la base */
+            color: #fff;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 6px;
+        }
+
+        .board-header {
+            font-size: 0.75rem;
+            font-weight: bold;
+            opacity: 0.8;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 4px;
+            flex-shrink: 0;
+        }
+
+        .messages-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-right: 4px;
+            margin-bottom: 2px;
+        }
+
+        .messages-container::-webkit-scrollbar { width: 3px; }
+        .messages-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+
+        .msg-item {
+            background: rgba(255,255,255,0.06);
+            padding: 6px 8px;
+            border-radius: 8px;
+            font-size: 0.72rem;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .msg-meta { font-weight: bold; color: #b19ffb; margin-bottom: 2px; display: flex; justify-content: space-between; }
+        .msg-time { font-weight: normal; opacity: 0.5; font-size: 0.65rem; }
+        .msg-text { word-break: break-word; color: #e0e0e0; }
+
+        .board-form {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 6px;
+            flex-shrink: 0;
+        }
+
+        .board-input {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px;
+            padding: 4px 6px;
+            color: white;
+            font-size: 0.7rem;
+            outline: none;
+        }
+        .board-input::placeholder { color: rgba(255,255,255,0.4); }
+
+        .board-btn-send {
+            background: #fff;
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            padding: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .board-btn-send:hover { opacity: 0.9; }
+
+        /* --- DOCK INFERIOR ESTILO iOS --- */
+        .bottom-dock {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 18px;
+            padding: 12px 30px;
+            border-radius: 35px;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .dock-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 13px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .dock-icon:hover { transform: translateY(-10px) scale(1.12); }
+
+        .icon-safari { background: linear-gradient(135deg, #00c6ff, #0072ff); }
+        .icon-spotify { background: #1DB954; }
+        .icon-procreate { background: linear-gradient(135deg, #2c2c54, #111); color: #ff5252; }
+        .icon-apple-music { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
+        .icon-photos { background: #fff; color: #ffb142; }
+        .icon-discord { background: #5865F2; }
+
+    
+/* About page integration: responsive overrides for the original desktop. */
+body { min-height: 100dvh; background-color: #15131d; }
+.lockscreen { height: 100dvh; }
+.lockscreen:focus-visible { outline: 3px solid #fff; outline-offset: -6px; }
+.lockscreen.unlocked { pointer-events: none; visibility: hidden; transition: transform .6s cubic-bezier(.85,0,.15,1), visibility 0s .6s; }
+@media (max-width: 1050px) {
+ body { height: auto; min-height: 100dvh; overflow-y: auto; overflow-x: hidden; padding: 76px 20px 116px; }
+ body::before { position: fixed; pointer-events: none; }
+ .desktop-container { width: 100%; max-width: 900px; gap: 16px; }
+ .main-board { width: 100%; min-width: 0; padding: 24px; }
+ .sidebar { flex-shrink: 0; }
+ .bottom-dock { position: fixed; gap: 14px; padding: 10px 22px; }
+}
+@media (max-width: 760px) {
+ body { padding: 76px 16px 24px; flex-direction: column; justify-content: flex-start; align-items: center; }
+ .desktop-container { flex-direction: column; align-items: stretch; }
+ .sidebar { order: 2; flex-direction: row; justify-content: center; flex-wrap: wrap; width: 100%; height: auto; padding: 12px; gap: 14px; }
+ .sidebar-btn { flex-shrink: 0; width: 36px; height: 36px; }
+ .main-board { height: auto; min-height: 530px; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; }
+ .left-col { grid-column: 1; min-width: 0; }
+ .right-col { grid-column: 2; min-width: 0; }
+ .center-spacer { display: none; }
+ .calendar-widget, .music-player { width: 100%; }
+ .time { font-size: 2.5rem; }
+ .greeting { font-size: 1rem; }
+ .header-right { gap: 8px; }
+ .character-bg-inside { height: 85%; opacity: .65; }
+ .lock-clock { font-size: clamp(4rem, 18vw, 6.5rem); }
+ .lock-date { font-size: 1.1rem; text-align: center; padding: 0 20px; }
+ .lock-hint { bottom: 40px; font-size: .7rem; text-align: center; padding: 0 20px; }
+ .bottom-dock { position: relative; left: auto; bottom: auto; transform: none; margin-top: 20px; gap: 12px; padding: 10px 16px; max-width: calc(100vw - 24px); flex-shrink: 0; }
+ .dock-icon { width: 36px; height: 36px; font-size: 1.2rem; flex-shrink: 0; }
+}
+@media (max-width: 500px) {
+ .main-board { grid-template-columns: 1fr; }
+ .left-col, .right-col { grid-column: 1; width: 100%; align-items: stretch; }
+ .character-bg-inside { height: 65%; top: 40%; opacity: .5; }
+ .calendar-widget, .music-player { max-width: 240px; }
+ .right-col { margin-top: 8px; }
+ .board-widget { height: 250px; }
+ .bottom-dock { gap: 9px; padding: 10px 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+ *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+</style>
+</head>
+<body>
+
+    <div class="lockscreen" id="lockscreen" role="button" tabindex="0" aria-label="解锁桌面" onclick="unlockTablet()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();unlockTablet();}">
+        <div class="lock-clock" id="lock-clock">00:00</div>
+        <div class="lock-date" id="lock-date">日期</div>
+        <div class="lock-hint">点击任意位置解锁</div>
+    </div>
+
+    <div class="desktop-container">
+        
+        <div class="sidebar glass-panel">
+            <div class="sidebar-btn search"><i class="fa-solid fa-magnifying-glass"></i></div>
+            <a href="#" class="sidebar-btn"><i class="fa-brands fa-tiktok"></i></a>
+            <a href="#" class="sidebar-btn"><i class="fa-brands fa-youtube"></i></a>
+            <a href="#" class="sidebar-btn"><i class="fa-brands fa-facebook-f"></i></a>
+            <a href="#" class="sidebar-btn"><i class="fa-brands fa-instagram"></i></a>
+            <a href="#" class="sidebar-btn"><i class="fa-brands fa-x-twitter"></i></a>
+        </div>
+
+        <div class="main-board glass-panel">
+            
+            <img class="character-bg-inside" src="https://u.cubeupload.com/zmonochrome/devilmandxddemonsand.png" alt="Miyu 人物插画">
+
+            <div class="left-col">
+                <div class="clock-widget">
+                    <div class="time" id="live-clock">00:00</div>
+                    <div class="date" id="live-date">日期</div>
+                </div>
+
+                <div class="calendar-widget">
+                    <div class="calendar-header" id="calendar-month">月份</div>
+                    <div class="calendar-grid" id="calendar-grid">
+                        <span class="day-name">日</span><span class="day-name">一</span><span class="day-name">二</span><span class="day-name">三</span><span class="day-name">四</span><span class="day-name">五</span><span class="day-name">六</span>
+                    </div>
+                </div>
+
+                <div class="music-player">
+                    <audio id="main-audio" src="" preload="none"></audio>
+                    <div class="album-art" id="player-art"></div>
+                    <div class="track-info">
+                        <div class="track-title" id="track-title">加载中…</div>
+                        <div class="player-controls">
+                            <i class="fa-solid fa-repeat" id="btn-repeat"></i>
+                            <i class="fa-solid fa-backward-step" id="btn-prev"></i>
+                            <i class="fa-solid fa-play" id="play-btn"></i>
+                            <i class="fa-solid fa-forward-step" id="btn-next"></i>
+                            <i class="fa-solid fa-heart" id="btn-heart"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="center-spacer" style="grid-column: 2; pointer-events: none;"></div>
+
+            <div class="right-col">
+                <div class="header-right">
+                    <div class="mini-icon-btn"><i class="fa-brands fa-figma"></i></div>
+                    <div class="user-tag">
+                        <span>Yuffie</span>
+                        <div class="user-avatar"></div>
+                    </div>
+                </div>
+
+                <div class="greeting" id="dynamic-greeting">你好，星云！</div>
+
+                <div class="gallery-grid">
+                    <div class="gallery-item item-large"></div>
+                    <div class="gallery-item item-top"></div>
+                    <div class="gallery-item item-bottom">
+                        <i class="fa-solid fa-guitar" style="color: #6c5ce7;"></i>
+                    </div>
+                </div>
+
+                <div class="board-widget">
+                    <div class="board-header">
+                        <i class="fa-solid fa-comments"></i> 本地留言
+                    </div>
+                    <div class="messages-container" id="messages-container"></div>
+                    <div class="board-form">
+                        <input type="text" id="input-name" class="board-input" placeholder="你的昵称…" maxlength="12">
+                        <input type="text" id="input-msg" class="board-input" placeholder="写下你的留言…" maxlength="50">
+                        <button class="board-btn-send" onclick="sendMessage()">发送留言</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="bottom-dock glass-panel">
+        <div class="dock-icon icon-safari"><i class="fa-solid fa-compass"></i></div>
+        <div class="dock-icon icon-spotify"><i class="fa-brands fa-spotify"></i></div>
+        <div class="dock-icon icon-procreate"><i class="fa-solid fa-palette"></i></div>
+        <div class="dock-icon icon-apple-music"><i class="fa-solid fa-music"></i></div>
+        <div class="dock-icon icon-photos"><i class="fa-solid fa-images"></i></div>
+        <div class="dock-icon icon-discord"><i class="fa-brands fa-discord"></i></div>
+    </div>
+
+    <script>(function localNotes() {
+  const key = 'about-desktop-notes-v1';
+  const container = document.getElementById('messages-container');
+  let notes = [];
+  function load() {
+    try {
+      const value = JSON.parse(localStorage.getItem(key) || '[]');
+      notes = Array.isArray(value) ? value.filter(item => item && typeof item.name === 'string' && typeof item.text === 'string' && typeof item.time === 'string').slice(-15) : [];
+    } catch { notes = []; }
+    render();
+  }
+  function render() {
+    container.replaceChildren();
+    if (!notes.length) {
+      const hint = document.createElement('div');
+      hint.style.cssText = 'font-size:0.7rem;opacity:0.5;text-align:center;margin-top:12px';
+      hint.textContent = '写下留言 · 仅保存在当前浏览器';
+      container.append(hint);
+    }
+    for (const note of notes) {
+      const item = document.createElement('div');
+      item.className = 'msg-item';
+      const meta = document.createElement('div');
+      meta.className = 'msg-meta';
+      const name = document.createElement('span');
+      name.textContent = note.name.slice(0, 12);
+      const time = document.createElement('span');
+      time.className = 'msg-time';
+      time.textContent = note.time;
+      const text = document.createElement('div');
+      text.className = 'msg-text';
+      text.textContent = note.text.slice(0, 50);
+      meta.append(name, time);
+      item.append(meta, text);
+      container.append(item);
+    }
+    container.scrollTop = container.scrollHeight;
+  }
+  window.sendMessage = function () {
+    const nameInput = document.getElementById('input-name');
+    const msgInput = document.getElementById('input-msg');
+    const text = msgInput.value.trim().slice(0, 50);
+    if (!text) return;
+    const next = [...notes, { name: nameInput.value.trim().slice(0, 12) || '匿名', text, time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) }].slice(-15);
+    try { localStorage.setItem(key, JSON.stringify(next)); }
+    catch { container.textContent = '留言保存失败。'; return; }
+    notes = next;
+    msgInput.value = '';
+    render();
+  };
+  window.addEventListener('storage', event => { if (event.key === key) load(); });
+  load();
+})();</script>
+
+    <script>
+        // --- PLAYLIST ---
+        const playlist = [
+            { title: "低保真节拍 · 放松时光", art: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=150", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
+            { title: "合成波之梦", art: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=150", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" },
+            { title: "赛博朋克氛围", art: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=150", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" }
+        ];
+
+        let currentTrackIndex = 0;
+        let isLooping = false;
+
+        const audio = document.getElementById('main-audio');
+        const playBtn = document.getElementById('play-btn');
+        const trackTitle = document.getElementById('track-title');
+        const playerArt = document.getElementById('player-art');
+        const btnRepeat = document.getElementById('btn-repeat');
+        const btnHeart = document.getElementById('btn-heart');
+
+        // Se corrigieron las referencias de los botones multimedia
+        function loadTrack(index) {
+            const track = playlist[index];
+            audio.src = track.url;
+            trackTitle.textContent = track.title;
+            playerArt.style.backgroundImage = `url('${track.art}')`;
+        }
+
+        function togglePlay() {
+            if (audio.paused) {
+                audio.play().then(() => playBtn.classList.replace('fa-play', 'fa-pause')).catch(err => console.log(err));
+            } else {
+                audio.pause();
+                playBtn.classList.replace('fa-pause', 'fa-play');
+            }
+        }
+
+        playBtn.addEventListener('click', (e) => { e.stopPropagation(); togglePlay(); });
+        document.getElementById('btn-next').addEventListener('click', (e) => { e.stopPropagation(); currentTrackIndex = (currentTrackIndex + 1) % playlist.length; loadTrack(currentTrackIndex); togglePlay(); });
+        document.getElementById('btn-prev').addEventListener('click', (e) => { e.stopPropagation(); currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length; loadTrack(currentTrackIndex); togglePlay(); });
+        btnRepeat.addEventListener('click', (e) => { e.stopPropagation(); isLooping = !isLooping; audio.loop = isLooping; btnRepeat.classList.toggle('active-btn', isLooping); });
+        btnHeart.addEventListener('click', (e) => { e.stopPropagation(); btnHeart.classList.toggle('liked'); });
+        audio.addEventListener('ended', () => { if (!isLooping) document.getElementById('btn-next').click(); });
+
+        // --- SYSTEM CORE ---
+        function unlockTablet() { document.getElementById('lockscreen').classList.add('unlocked'); }
+
+        function updateClockAndCalendar() {
+            const now = new Date();
+            let hours = now.getHours().toString().padStart(2, '0');
+            let minutes = now.getMinutes().toString().padStart(2, '0');
+            let hourInt = now.getHours();
+            
+            document.getElementById('live-clock').textContent = `${hours}:${minutes}`;
+            document.getElementById('lock-clock').textContent = `${hours}:${minutes}`;
+            document.getElementById('live-date').textContent = now.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric', weekday: 'long' });
+            document.getElementById('lock-date').textContent = now.toLocaleDateString('zh-CN', { weekday: 'long', day: 'numeric', month: 'long' });
+
+            const greetingEl = document.getElementById('dynamic-greeting');
+            if (hourInt >= 6 && hourInt < 12) greetingEl.textContent = "早上好，星云！☕";
+            else if (hourInt >= 12 && hourInt < 18) greetingEl.textContent = "你好，星云！ ✨";
+            else if (hourInt >= 18 && hourInt < 23) greetingEl.textContent = "休息一下吧，星云！🎬";
+            else greetingEl.textContent = "夜深了，星云！🌙";
+        }
+
+        function buildCalendar() {
+            const now = new Date();
+            const monthNames = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"];
+            document.getElementById('calendar-month').textContent = monthNames[now.getMonth()];
+            const grid = document.getElementById('calendar-grid');
+            const firstDayIndex = new Date(now.getFullYear(), now.getMonth(), 1).getDay(); 
+            const totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+
+            for (let i = 0; i < firstDayIndex; i++) grid.appendChild(document.createElement('span'));
+            for (let day = 1; day <= totalDays; day++) {
+                const daySpan = document.createElement('span');
+                daySpan.textContent = day;
+                if (day === now.getDate()) daySpan.classList.add('active');
+                grid.appendChild(daySpan);
+            }
+        }
+
+        setInterval(updateClockAndCalendar, 1000);
+        updateClockAndCalendar();
+        buildCalendar();
+        loadTrack(currentTrackIndex);
+    </script>
+</body>
+</html>
